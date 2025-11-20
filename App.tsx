@@ -1,16 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AspectRatio, GeneratedImage } from './types';
 import { generateImageFromPrompt } from './services/geminiService';
-import { SparklesIcon, LoaderIcon, AlertCircleIcon } from './components/Icons';
+import { SparklesIcon, LoaderIcon, AlertCircleIcon, HistoryIcon, TrashIcon } from './components/Icons';
 import { Controls } from './components/Controls';
 import { ImageResult } from './components/ImageResult';
+
+const LOCAL_STORAGE_KEY = 'luminagen_history';
 
 const App: React.FC = () => {
   const [prompt, setPrompt] = useState('');
   const [aspectRatio, setAspectRatio] = useState<AspectRatio>(AspectRatio.Square);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [images, setImages] = useState<GeneratedImage[]>([]);
+  
+  // Initialize images from localStorage
+  const [images, setImages] = useState<GeneratedImage[]>(() => {
+    try {
+      const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to load history from localStorage:", e);
+      return [];
+    }
+  });
+
+  // Save to localStorage whenever images change
+  useEffect(() => {
+    try {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(images));
+    } catch (e) {
+      console.error("Failed to save history to localStorage:", e);
+      // Could set an error state here if strictly required, but silent failure 
+      // or console warning is often acceptable for storage quotas in simple apps.
+    }
+  }, [images]);
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
@@ -31,6 +54,13 @@ const App: React.FC = () => {
 
   const handleDelete = (id: string) => {
       setImages(prev => prev.filter(img => img.id !== id));
+  };
+
+  const handleClearHistory = () => {
+      if (window.confirm("Are you sure you want to clear your entire generation history?")) {
+          setImages([]);
+          localStorage.removeItem(LOCAL_STORAGE_KEY);
+      }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -124,8 +154,27 @@ const App: React.FC = () => {
           </div>
         )}
 
+        {/* History Header */}
+        {images.length > 0 && (
+          <div className="w-full mt-16 flex items-center justify-between mb-6 animate-fade-in">
+              <div className="flex items-center gap-3">
+                 <span className="bg-brand-500/10 p-2 rounded-lg text-brand-400">
+                   <HistoryIcon className="w-5 h-5" />
+                 </span>
+                 <h3 className="text-2xl font-bold text-white">History</h3>
+              </div>
+              <button 
+                onClick={handleClearHistory}
+                className="text-sm text-gray-400 hover:text-red-400 flex items-center gap-1.5 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors"
+              >
+                  <TrashIcon className="w-4 h-4" />
+                  Clear All
+              </button>
+          </div>
+        )}
+
         {/* Gallery Grid */}
-        <div className="w-full mt-16 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-8">
           {images.map((img) => (
             <ImageResult key={img.id} image={img} onDelete={handleDelete} />
           ))}

@@ -1,0 +1,5 @@
+{
+  "name": "ZachTechs AI Image Generator",
+  "description": "A high-fidelity AI image generation studio by ZachTechs, powered by Google's Imagen 3 model. Create stunning visuals from text prompts with customizable aspect ratios.",
+  "requestFramePermissions": []
+}

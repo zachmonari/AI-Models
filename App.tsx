@@ -143,7 +143,7 @@ const App: React.FC = () => {
       </main>
       
       <footer className="w-full p-6 text-center text-gray-700 text-sm z-10">
-          <p>&copy; {new Date().getFullYear()} LuminaGen. Powered by Google Gemini API.</p>
+          <p>&copy; {new Date().getFullYear()} ZachTechs. Powered by Google Gemini API.</p>
       </footer>
     </div>
   );
